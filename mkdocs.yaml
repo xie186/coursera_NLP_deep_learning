@@ -1,0 +1,44 @@
+# Project Information
+site_name: Note for Natural Language Processing with Classification and Vector Spaces
+site_author: Shaojun Xie 
+site_description: >-
+   Course note for Natural Language Processing with Classification and Vector Spaces
+   
+# Repository
+repo_name: xie186/coursera_NLP_deep_learning
+repo_url: https://github.com/xie186/coursera_NLP_deep_learning.git 
+#edit_uri: https://github.com/Bix4UMD/BIOI611_lab/edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2024 Shaojun Xie
+
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - rust
+
+# Customization
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/xie186
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+# Page Tree
+nav:
+  
+  - Sentiment Analysis with Logistic Regression: 
+    - Natural Language preprocessing:  C1_W1_lecture_nb_01_preprocessing.md
+    - Building and Visualizing word frequencies: C1_W1_lecture_nb_02_word frequencies.md
+
+  - Bulk RNA-seq:
+    - Read QC and alignment: bulkRNAseq_lab.md
