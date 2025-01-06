@@ -41,5 +41,5 @@ nav:
     - Building and Visualizing word frequencies: C1_W1_lecture_nb_02_word frequencies.md
     - Logistic Regression training: Logistic_Regression_training.md
     - Visualizing tweets and the Logistic Regression model: C1_W1_lecture_nb_03_logistic_regression_model.md
-    - Visualizing likelihoods and confidence ellipses: 
+    - Visualizing likelihoods and confidence ellipses: C1_W2_lecture_nb_01_visualizing_naive_bayes.md 
 
