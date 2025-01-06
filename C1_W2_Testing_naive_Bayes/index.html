@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Shaojun Xie" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Testing naïve Bayes - Note for Natural Language Processing with Classification and Vector Spaces</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Testing na\u00efve Bayes";
+        var mkdocs_page_input_path = "C1_W2_Testing_naive_Bayes.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Note for Natural Language Processing with Classification and Vector Spaces
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Sentiment Analysis with Logistic Regression</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W1_lecture_nb_01_preprocessing/">Natural Language preprocessing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W1_lecture_nb_02_word%20frequencies/">Building and Visualizing word frequencies</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Logistic_Regression_training/">Logistic Regression training</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W1_lecture_nb_03_logistic_regression_model/">Visualizing tweets and the Logistic Regression model</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Sentiment Analysis with naïve Bayes</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W2_lecture_nb_01_visualizing_naive_bayes/">Visualizing likelihoods and confidence ellipses</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Testing naïve Bayes</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#sentiment-analysis-with-log-likelihood">Sentiment Analysis with Log-Likelihood</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#log-likelihood-table">Log-Likelihood Table</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Note for Natural Language Processing with Classification and Vector Spaces</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Sentiment Analysis with naïve Bayes</li>
+      <li class="breadcrumb-item active">Testing naïve Bayes</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/xie186/coursera_NLP_deep_learning.git/edit/master/docs/C1_W2_Testing_naive_Bayes.md">Edit on xie186/coursera_NLP_deep_learning</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="testing-naive-bayes">Testing naïve Bayes</h1>
+<h2 id="sentiment-analysis-with-log-likelihood">Sentiment Analysis with Log-Likelihood</h2>
+<ul>
+<li>
+<p><strong>Log-likelihood dictionary</strong>:<br />
+  $$
+  \lambda(w) = \log \frac{P(w \mid pos)}{P(w \mid neg)}
+  $$</p>
+</li>
+<li>
+<p><strong>Logprior</strong>:<br />
+  $$
+  \text{logprior} = \log \frac{D_{pos}}{D_{neg}} = 0
+  $$</p>
+</li>
+<li>
+<p><strong>Tweet</strong>:<br />
+  $$
+  [\text{"I"}, \text{"pass"}, \text{"the"}, \text{"NLP"}, \text{"interview"}]
+  $$</p>
+</li>
+<li>
+<p><strong>Calculation of the score</strong>:
+  $$
+  \text{score} = -0.01 + 0.5 - 0.01 + 0 + \text{logprior} = 0.48
+  $$</p>
+</li>
+<li>
+<p><strong>Prediction</strong>:<br />
+  $$
+  \text{pred} = \text{score} &gt; 0
+  $$</p>
+</li>
+</ul>
+<hr />
+<h2 id="log-likelihood-table">Log-Likelihood Table</h2>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th><span class="arithmatex">\(\lambda\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I</td>
+<td>-0.01</td>
+</tr>
+<tr>
+<td>the</td>
+<td>-0.01</td>
+</tr>
+<tr>
+<td>happi</td>
+<td>0.63</td>
+</tr>
+<tr>
+<td>because</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>pass</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>NLP</td>
+<td>0</td>
+</tr>
+<tr>
+<td>sad</td>
+<td>-0.75</td>
+</tr>
+<tr>
+<td>not</td>
+<td>-0.75</td>
+</tr>
+</tbody>
+</table>
+<p>The example above shows how you can make a prediction given your <span class="arithmatex">\(\lambda\)</span> dictionary. In this example the 
+<span class="arithmatex">\(text{logprior}\)</span> is 0 because we have the same amount of positive and negative documents (i.e. <span class="arithmatex">\(\log(1)=0\)</span>). </p>
+<pre><code class="language-python">
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../C1_W2_lecture_nb_01_visualizing_naive_bayes/" class="btn btn-neutral float-left" title="Visualizing likelihoods and confidence ellipses"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/xie186/coursera_NLP_deep_learning.git" class="fa fa-code-fork" style="color: #fcfcfc"> xie186/coursera_NLP_deep_learning</a>
+        </span>
+    
+    
+      <span><a href="../C1_W2_lecture_nb_01_visualizing_naive_bayes/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../javascripts/mathjax.js"></script>
+      <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

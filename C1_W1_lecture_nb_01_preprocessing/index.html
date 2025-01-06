@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Shaojun Xie" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Natural Language preprocessing - Note for Natural Language Processing with Classification and Vector Spaces</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Natural Language preprocessing";
+        var mkdocs_page_input_path = "C1_W1_lecture_nb_01_preprocessing.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Note for Natural Language Processing with Classification and Vector Spaces
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Sentiment Analysis with Logistic Regression</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Natural Language preprocessing</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#about-the-twitter-dataset">About the Twitter dataset</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#looking-at-raw-texts">Looking at raw texts</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#preprocess-raw-text-for-sentiment-analysis">Preprocess raw text for Sentiment analysis</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#remove-hyperlinks-twitter-marks-and-styles">Remove hyperlinks, Twitter marks and styles</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#tokenize-the-string">Tokenize the string</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#remove-stop-words-and-punctuations">Remove stop words and punctuations</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#stemming">Stemming</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#process_tweet">process_tweet()</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W1_lecture_nb_02_word%20frequencies/">Building and Visualizing word frequencies</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Logistic_Regression_training/">Logistic Regression training</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W1_lecture_nb_03_logistic_regression_model/">Visualizing tweets and the Logistic Regression model</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Sentiment Analysis with naïve Bayes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W2_lecture_nb_01_visualizing_naive_bayes/">Visualizing likelihoods and confidence ellipses</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W2_Testing_naive_Bayes/">Testing naïve Bayes</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Note for Natural Language Processing with Classification and Vector Spaces</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Sentiment Analysis with Logistic Regression</li>
+      <li class="breadcrumb-item active">Natural Language preprocessing</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/xie186/coursera_NLP_deep_learning.git/edit/master/docs/C1_W1_lecture_nb_01_preprocessing.md">Edit on xie186/coursera_NLP_deep_learning</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="preprocessing">Preprocessing</h1>
+<p>In this lab, we will be exploring how to preprocess tweets for sentiment analysis. We will provide a function for preprocessing tweets during this week's assignment, but it is still good to know what is going on under the hood. By the end of this lecture, you will see how to use the <a href="http://www.nltk.org">NLTK</a> package to perform a preprocessing pipeline for Twitter datasets.</p>
+<h2 id="setup">Setup</h2>
+<p>You will be doing sentiment analysis on tweets in the first two weeks of this course. To help with that, we will be using the <a href="http://www.nltk.org/howto/twitter.html">Natural Language Toolkit (NLTK)</a> package, an open-source Python library for natural language processing. It has modules for collecting, handling, and processing Twitter data, and you will be acquainted with them as we move along the course.</p>
+<p>For this exercise, we will use a Twitter dataset that comes with NLTK. This dataset has been manually annotated and serves to establish baselines for models quickly. Let us import them now as well as a few other libraries we will be using.</p>
+<pre><code class="language-python">import nltk                                # Python library for NLP
+from nltk.corpus import twitter_samples    # sample Twitter dataset from NLTK
+import matplotlib.pyplot as plt            # library for visualization
+import random                              # pseudo-random number generator
+</code></pre>
+<h2 id="about-the-twitter-dataset">About the Twitter dataset</h2>
+<p>The sample dataset from NLTK is separated into positive and negative tweets. It contains 5000 positive tweets and 5000 negative tweets exactly. The exact match between these classes is not a coincidence. The intention is to have a balanced dataset. That does not reflect the real distributions of positive and negative classes in live Twitter streams. It is just because balanced datasets simplify the design of most computational methods that are required for sentiment analysis. However, it is better to be aware that this balance of classes is artificial. </p>
+<p>You can download the dataset in your workspace (or in your local computer) by doing:</p>
+<pre><code class="language-python"># downloads sample twitter dataset.
+nltk.download('twitter_samples')
+</code></pre>
+<pre><code>[nltk_data] Downloading package twitter_samples to
+[nltk_data]     /Users/xies4/nltk_data...
+[nltk_data]   Unzipping corpora/twitter_samples.zip.
+
+
+
+
+
+True
+</code></pre>
+<p>We can load the text fields of the positive and negative tweets by using the module's <code>strings()</code> method like this:</p>
+<pre><code class="language-python"># select the set of positive and negative tweets
+all_positive_tweets = twitter_samples.strings('positive_tweets.json')
+all_negative_tweets = twitter_samples.strings('negative_tweets.json')
+</code></pre>
+<p>Next, we'll print a report with the number of positive and negative tweets. It is also essential to know the data structure of the datasets</p>
+<pre><code class="language-python">print('Number of positive tweets: ', len(all_positive_tweets))
+print('Number of negative tweets: ', len(all_negative_tweets))
+
+print('\nThe type of all_positive_tweets is: ', type(all_positive_tweets))
+print('The type of a tweet entry is: ', type(all_negative_tweets[0]))
+</code></pre>
+<pre><code>Number of positive tweets:  5000
+Number of negative tweets:  5000
+
+The type of all_positive_tweets is:  &lt;class 'list'&gt;
+The type of a tweet entry is:  &lt;class 'str'&gt;
+</code></pre>
+<p>We can see that the data is stored in a list and as you might expect, individual tweets are stored as strings.</p>
+<p>You can make a more visually appealing report by using Matplotlib's <a href="https://matplotlib.org/tutorials/introductory/pyplot.html">pyplot</a> library. Let us see how to create a <a href="https://matplotlib.org/3.2.1/gallery/pie_and_polar_charts/pie_features.html#sphx-glr-gallery-pie-and-polar-charts-pie-features-py">pie chart</a> to show the same information as above. This simple snippet will serve you in future visualizations of this kind of data.</p>
+<pre><code class="language-python"># Declare a figure with a custom size
+fig = plt.figure(figsize=(5, 5))
+
+# labels for the two classes
+labels = 'Positives', 'Negative'
+
+# Sizes for each slide
+sizes = [len(all_positive_tweets), len(all_negative_tweets)] 
+
+# Declare pie chart, where the slices will be ordered and plotted counter-clockwise:
+plt.pie(sizes, labels=labels, autopct='%1.1f%%',
+        shadow=True, startangle=90)
+
+# Equal aspect ratio ensures that pie is drawn as a circle.
+plt.axis('equal')  
+
+# Display the chart
+plt.show()
+</code></pre>
+<p><img alt="png" src="../C1_W1_lecture_nb_01_preprocessing_files/C1_W1_lecture_nb_01_preprocessing_10_0.png" /></p>
+<h2 id="looking-at-raw-texts">Looking at raw texts</h2>
+<p>Before anything else, we can print a couple of tweets from the dataset to see how they look. Understanding the data is responsible for 80% of the success or failure in data science projects. We can use this time to observe aspects we'd like to consider when preprocessing our data.</p>
+<p>Below, you will print one random positive and one random negative tweet. We have added a color mark at the beginning of the string to further distinguish the two. (Warning: This is taken from a public dataset of real tweets and a very small portion has explicit content.)</p>
+<pre><code class="language-python"># print positive in greeen
+print('\033[92m' + all_positive_tweets[random.randint(0,5000)])
+
+# print negative in red
+print('\033[91m' + all_negative_tweets[random.randint(0,5000)])
+</code></pre>
+<pre><code>[92mSore :D
+[91mGood bye stage :((((
+</code></pre>
+<p>One observation you may have is the presence of <a href="https://en.wikipedia.org/wiki/Emoticon">emoticons</a> and URLs in many of the tweets. This info will come in handy in the next steps.</p>
+<h2 id="preprocess-raw-text-for-sentiment-analysis">Preprocess raw text for Sentiment analysis</h2>
+<p>Data preprocessing is one of the critical steps in any machine learning project. It includes cleaning and formatting the data before feeding into a machine learning algorithm. For NLP, the preprocessing steps are comprised of the following tasks:</p>
+<ul>
+<li>Tokenizing the string</li>
+<li>Lowercasing</li>
+<li>Removing stop words and punctuation</li>
+<li>Stemming</li>
+</ul>
+<p>The videos explained each of these steps and why they are important. Let's see how we can do these to a given tweet. We will choose just one and see how this is transformed by each preprocessing step.</p>
+<pre><code class="language-python"># Our selected sample. Complex enough to exemplify each step
+tweet = all_positive_tweets[2277]
+print(tweet)
+</code></pre>
+<pre><code>My beautiful sunflowers on a sunny Friday morning off :) #sunflowers #favourites #happy #Friday off… https://t.co/3tfYom0N1i
+</code></pre>
+<p>Let's import a few more libraries for this purpose.</p>
+<pre><code class="language-python"># download the stopwords from NLTK
+nltk.download('stopwords')
+</code></pre>
+<pre><code>[nltk_data] Downloading package stopwords to /Users/xies4/nltk_data...
+[nltk_data]   Unzipping corpora/stopwords.zip.
+
+
+
+
+
+True
+</code></pre>
+<pre><code class="language-python">import re                                  # library for regular expression operations
+import string                              # for string operations
+
+from nltk.corpus import stopwords          # module for stop words that come with NLTK
+from nltk.stem import PorterStemmer        # module for stemming
+from nltk.tokenize import TweetTokenizer   # module for tokenizing strings
+</code></pre>
+<h3 id="remove-hyperlinks-twitter-marks-and-styles">Remove hyperlinks,  Twitter marks and styles</h3>
+<p>Since we have a Twitter dataset, we'd like to remove some substrings commonly used on the platform like the hashtag, retweet marks, and hyperlinks. We'll use the <a href="https://docs.python.org/3/library/re.html">re</a> library to perform regular expression operations on our tweet. We'll define our search pattern and use the <code>sub()</code> method to remove matches by substituting with an empty character (i.e. <code>''</code>)</p>
+<pre><code class="language-python">print('\033[92m' + tweet)
+print('\033[94m')
+
+# remove old style retweet text &quot;RT&quot;
+tweet2 = re.sub(r'^RT[\s]+', '', tweet)
+
+# remove hyperlinks
+tweet2 = re.sub(r'https?://[^\s\n\r]+', '', tweet2)
+
+# remove hashtags
+# only removing the hash # sign from the word
+tweet2 = re.sub(r'#', '', tweet2)
+
+print(tweet2)
+</code></pre>
+<pre><code>[92mMy beautiful sunflowers on a sunny Friday morning off :) #sunflowers #favourites #happy #Friday off… https://t.co/3tfYom0N1i
+[94m
+My beautiful sunflowers on a sunny Friday morning off :) sunflowers favourites happy Friday off…
+</code></pre>
+<h3 id="tokenize-the-string">Tokenize the string</h3>
+<p>To tokenize means to split the strings into individual words without blanks or tabs. In this same step, we will also convert each word in the string to lower case. The <a href="https://www.nltk.org/api/nltk.tokenize.html#module-nltk.tokenize.casual">tokenize</a> module from NLTK allows us to do these easily:</p>
+<pre><code class="language-python">print()
+print('\033[92m' + tweet2)
+print('\033[94m')
+
+# instantiate tokenizer class
+tokenizer = TweetTokenizer(preserve_case=False, strip_handles=True,
+                               reduce_len=True)
+
+# tokenize tweets
+tweet_tokens = tokenizer.tokenize(tweet2)
+
+print()
+print('Tokenized string:')
+print(tweet_tokens)
+</code></pre>
+<pre><code>[92mMy beautiful sunflowers on a sunny Friday morning off :) sunflowers favourites happy Friday off… 
+[94m
+
+Tokenized string:
+['my', 'beautiful', 'sunflowers', 'on', 'a', 'sunny', 'friday', 'morning', 'off', ':)', 'sunflowers', 'favourites', 'happy', 'friday', 'off', '…']
+</code></pre>
+<h3 id="remove-stop-words-and-punctuations">Remove stop words and punctuations</h3>
+<p>The next step is to remove stop words and punctuation. Stop words are words that don't add significant meaning to the text. You'll see the list provided by NLTK when you run the cells below.</p>
+<table>
+<thead>
+<tr>
+<th><strong>Stop words</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>and</td>
+</tr>
+<tr>
+<td>is</td>
+</tr>
+<tr>
+<td>are</td>
+</tr>
+<tr>
+<td>at</td>
+</tr>
+<tr>
+<td>has</td>
+</tr>
+<tr>
+<td>for</td>
+</tr>
+<tr>
+<td>a</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th><strong>Punctuation</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>,</td>
+</tr>
+<tr>
+<td>.</td>
+</tr>
+<tr>
+<td>:</td>
+</tr>
+<tr>
+<td>!</td>
+</tr>
+<tr>
+<td>“</td>
+</tr>
+<tr>
+<td>‘</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-python">#Import the english stop words list from NLTK
+stopwords_english = stopwords.words('english') 
+
+print('Stop words\n')
+print(stopwords_english)
+
+print('\nPunctuation\n')
+print(string.punctuation)
+</code></pre>
+<pre><code>Stop words
+
+['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's", 'her', 'hers', 'herself', 'it', "it's", 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', "that'll", 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', "don't", 'should', "should've", 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn', "didn't", 'doesn', "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't", 'ma', 'mightn', "mightn't", 'mustn', "mustn't", 'needn', "needn't", 'shan', "shan't", 'shouldn', "shouldn't", 'wasn', "wasn't", 'weren', "weren't", 'won', "won't", 'wouldn', "wouldn't"]
+
+Punctuation
+
+!"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}~
+</code></pre>
+<p>We can see that the stop words list above contains some words that could be important in some contexts. 
+These could be words like <em>i, not, between, because, won, against</em>. You might need to customize the stop words list for some applications. For our exercise, we will use the entire list.</p>
+<p>For the punctuation, we saw earlier that certain groupings like ':)' and '...'  should be retained when dealing with tweets because they are used to express emotions. In other contexts, like medical analysis, these should also be removed.</p>
+<p>Time to clean up our tokenized tweet!</p>
+<pre><code class="language-python">print()
+print('\033[92m')
+print(tweet_tokens)
+print('\033[94m')
+
+tweets_clean = []
+
+for word in tweet_tokens: # Go through every word in your tokens list
+    if (word not in stopwords_english and  # remove stopwords
+        word not in string.punctuation):  # remove punctuation
+        tweets_clean.append(word)
+
+print('removed stop words and punctuation:')
+print(tweets_clean)
+</code></pre>
+<pre><code>[92m
+['my', 'beautiful', 'sunflowers', 'on', 'a', 'sunny', 'friday', 'morning', 'off', ':)', 'sunflowers', 'favourites', 'happy', 'friday', 'off', '…']
+[94m
+removed stop words and punctuation:
+['beautiful', 'sunflowers', 'sunny', 'friday', 'morning', ':)', 'sunflowers', 'favourites', 'happy', 'friday', '…']
+</code></pre>
+<p>Please note that the words <strong>happy</strong> and <strong>sunny</strong> in this list are correctly spelled. </p>
+<h3 id="stemming">Stemming</h3>
+<p>Stemming is the process of converting a word to its most general form, or stem. This helps in reducing the size of our vocabulary.</p>
+<p>Consider the words: 
+ * <strong>learn</strong>
+ * <strong>learn</strong>ing
+ * <strong>learn</strong>ed
+ * <strong>learn</strong>t</p>
+<p>All these words are stemmed from its common root <strong>learn</strong>. However, in some cases, the stemming process produces words that are not correct spellings of the root word. For example, <strong>happi</strong> and <strong>sunni</strong>. That's because it chooses the most common stem for related words. For example, we can look at the set of words that comprises the different forms of happy:</p>
+<ul>
+<li><strong>happ</strong>y</li>
+<li><strong>happi</strong>ness</li>
+<li><strong>happi</strong>er</li>
+</ul>
+<p>We can see that the prefix <strong>happi</strong> is more commonly used. We cannot choose <strong>happ</strong> because it is the stem of unrelated words like <strong>happen</strong>.</p>
+<p>NLTK has different modules for stemming and we will be using the <a href="https://www.nltk.org/api/nltk.stem.html#module-nltk.stem.porter">PorterStemmer</a> module which uses the <a href="https://tartarus.org/martin/PorterStemmer/">Porter Stemming Algorithm</a>. Let's see how we can use it in the cell below.</p>
+<pre><code class="language-python">print()
+print('\033[92m')
+print(tweets_clean)
+print('\033[94m')
+
+# Instantiate stemming class
+stemmer = PorterStemmer() 
+
+# Create an empty list to store the stems
+tweets_stem = [] 
+
+for word in tweets_clean:
+    stem_word = stemmer.stem(word)  # stemming word
+    tweets_stem.append(stem_word)  # append to the list
+
+print('stemmed words:')
+print(tweets_stem)
+</code></pre>
+<pre><code>[92m
+['beautiful', 'sunflowers', 'sunny', 'friday', 'morning', ':)', 'sunflowers', 'favourites', 'happy', 'friday', '…']
+[94m
+stemmed words:
+['beauti', 'sunflow', 'sunni', 'friday', 'morn', ':)', 'sunflow', 'favourit', 'happi', 'friday', '…']
+</code></pre>
+<p>That's it! Now we have a set of words we can feed into to the next stage of our machine learning project.</p>
+<h2 id="process_tweet">process_tweet()</h2>
+<p>As shown above, preprocessing consists of multiple steps before you arrive at the final list of words. We will not ask you to replicate these however. In the week's assignment, you will use the function <code>process_tweet(tweet)</code> available in <em>utils.py</em>. We encourage you to open the file and you'll see that this function's implementation is very similar to the steps above.</p>
+<p>To obtain the same result as in the previous code cells, you will only need to call the function <code>process_tweet()</code>. Let's do that in the next cell.</p>
+<pre><code class="language-python">from utils import process_tweet # Import the process_tweet function
+
+# choose the same tweet
+tweet = all_positive_tweets[2277]
+
+print()
+print('\033[92m')
+print(tweet)
+print('\033[94m')
+
+# call the imported function
+tweets_stem = process_tweet(tweet); # Preprocess a given tweet
+
+print('preprocessed tweet:')
+print(tweets_stem) # Print the result
+</code></pre>
+<pre><code>[92m
+My beautiful sunflowers on a sunny Friday morning off :) #sunflowers #favourites #happy #Friday off… https://t.co/3tfYom0N1i
+[94m
+preprocessed tweet:
+['beauti', 'sunflow', 'sunni', 'friday', 'morn', ':)', 'sunflow', 'favourit', 'happi', 'friday', '…']
+</code></pre>
+<p>That's it for this lab! You now know what is going on when you call the preprocessing helper function in this week's assignment. Hopefully, this exercise has also given you some insights on how to tweak this for other types of text datasets.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../C1_W1_lecture_nb_02_word%20frequencies/" class="btn btn-neutral float-right" title="Building and Visualizing word frequencies">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/xie186/coursera_NLP_deep_learning.git" class="fa fa-code-fork" style="color: #fcfcfc"> xie186/coursera_NLP_deep_learning</a>
+        </span>
+    
+    
+    
+      <span><a href="../C1_W1_lecture_nb_02_word%20frequencies/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../javascripts/mathjax.js"></script>
+      <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

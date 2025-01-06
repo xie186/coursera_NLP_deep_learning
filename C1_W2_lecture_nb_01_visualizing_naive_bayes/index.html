@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Shaojun Xie" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Visualizing likelihoods and confidence ellipses - Note for Natural Language Processing with Classification and Vector Spaces</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Visualizing likelihoods and confidence ellipses";
+        var mkdocs_page_input_path = "C1_W2_lecture_nb_01_visualizing_naive_bayes.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/rust.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Note for Natural Language Processing with Classification and Vector Spaces
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Sentiment Analysis with Logistic Regression</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W1_lecture_nb_01_preprocessing/">Natural Language preprocessing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W1_lecture_nb_02_word%20frequencies/">Building and Visualizing word frequencies</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Logistic_Regression_training/">Logistic Regression training</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W1_lecture_nb_03_logistic_regression_model/">Visualizing tweets and the Logistic Regression model</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Sentiment Analysis with naïve Bayes</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Visualizing likelihoods and confidence ellipses</a>
+    <ul class="current">
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../C1_W2_Testing_naive_Bayes/">Testing naïve Bayes</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Note for Natural Language Processing with Classification and Vector Spaces</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Sentiment Analysis with naïve Bayes</li>
+      <li class="breadcrumb-item active">Visualizing likelihoods and confidence ellipses</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/xie186/coursera_NLP_deep_learning.git/edit/master/docs/C1_W2_lecture_nb_01_visualizing_naive_bayes.md">Edit on xie186/coursera_NLP_deep_learning</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="visualizing-naive-bayes">Visualizing Naive Bayes</h1>
+<p>In this lab, we will cover an essential part of data analysis that has not been included in the lecture videos. As we stated in the previous module, data visualization gives insight into the expected performance of any model. </p>
+<p>In the following exercise, you are going to make a visual inspection of the tweets dataset using the Naïve Bayes features. We will see how we can understand the log-likelihood ratio explained in the videos as a pair of numerical features that can be fed in a machine learning algorithm. </p>
+<p>At the end of this lab, we will introduce the concept of <strong>confidence ellipse</strong> as a tool for representing the Naïve Bayes model visually.</p>
+<pre><code class="language-python">import numpy as np # Library for linear algebra and math utils
+import pandas as pd # Dataframe library
+
+import matplotlib.pyplot as plt # Library for plots
+from utils_week2 import confidence_ellipse # Function to add confidence ellipses to charts
+</code></pre>
+<p>## Calculate the likelihoods for each tweet</p>
+<p>For each tweet, we have calculated the likelihood of the tweet to be positive and the likelihood to be negative. We have calculated in different columns the numerator and denominator of the likelihood ratio introduced previously.  </p>
+<div class="arithmatex">\[log \frac{P(tweet|pos)}{P(tweet|neg)} = log(P(tweet|pos)) - log(P(tweet|neg)) \]</div>
+<div class="arithmatex">\[positive = log(P(tweet|pos)) = \sum_{i=0}^{n}{log P(W_i|pos)}\]</div>
+<div class="arithmatex">\[negative = log(P(tweet|neg)) = \sum_{i=0}^{n}{log P(W_i|neg)}\]</div>
+<p>We did not include the code because this is part of this week's assignment.  The <strong>'bayes_features.csv'</strong> file contains the final result of this process. </p>
+<p>The cell below loads the table in a dataframe. Dataframes are data structures that simplify the manipulation of data, allowing filtering, slicing, joining, and summarization.</p>
+<pre><code class="language-python">data = pd.read_csv('./data/bayes_features.csv'); # Load the data from the csv file
+
+data.head(5) # Print the first 5 tweets features. Each row represents a tweet
+</code></pre>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>positive</th>
+      <th>negative</th>
+      <th>sentiment</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>-45.763393</td>
+      <td>-63.351354</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>-105.491568</td>
+      <td>-114.204862</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>-57.028078</td>
+      <td>-67.216467</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>-10.055885</td>
+      <td>-18.589057</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>-125.749270</td>
+      <td>-138.334845</td>
+      <td>1.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<pre><code class="language-python"># Plot the samples using columns 1 and 2 of the matrix
+fig, ax = plt.subplots(figsize = (8, 8)) #Create a new figure with a custom size
+
+colors = ['red', 'green'] # Define a color palete
+sentiments = ['negative', 'positive'] 
+
+index = data.index
+
+# Color base on sentiment
+for sentiment in data.sentiment.unique():
+    ix = index[data.sentiment == sentiment]
+    ax.scatter(data.iloc[ix].positive, data.iloc[ix].negative, c=colors[int(sentiment)], s=0.1, marker='*', label=sentiments[int(sentiment)])
+
+ax.legend(loc='best')    
+
+# Custom limits for this chart
+plt.xlim(-250,0)
+plt.ylim(-250,0)
+
+plt.xlabel(&quot;Positive&quot;) # x-axis label
+plt.ylabel(&quot;Negative&quot;) # y-axis label
+plt.show()
+</code></pre>
+<p><img alt="png" src="../C1_W2_lecture_nb_01_visualizing_naive_bayes_files/C1_W2_lecture_nb_01_visualizing_naive_bayes_4_0.png" /></p>
+<h1 id="using-confidence-ellipses-to-interpret-naive-bayes">Using Confidence Ellipses to interpret Naïve Bayes</h1>
+<p>In this section, we will use the <a href="https://matplotlib.org/3.1.1/gallery/statistics/confidence_ellipse.html#sphx-glr-gallery-statistics-confidence-ellipse-py">confidence ellipse</a> to give us an idea of what the Naïve Bayes model see.</p>
+<p>A confidence ellipse is a way to visualize a 2D random variable. It is a better way than plotting the points over a cartesian plane because, with big datasets, the points can overlap badly and hide the real distribution of the data. Confidence ellipses summarize the information of the dataset with only four parameters: </p>
+<ul>
+<li>Center: It is the numerical mean of the attributes</li>
+<li>Height and width: Related with the variance of each attribute. The user must specify the desired amount of standard deviations used to plot the ellipse. </li>
+<li>Angle: Related with the covariance among attributes.</li>
+</ul>
+<p>The parameter <strong>n_std</strong> stands for the number of standard deviations bounded by the ellipse. Remember that for normal random distributions:</p>
+<ul>
+<li>About 68% of the area under the curve falls within 1 standard deviation around the mean.</li>
+<li>About 95% of the area under the curve falls within 2 standard deviations around the mean.</li>
+<li>About 99.7% of the area under the curve falls within 3 standard deviations around the mean.</li>
+</ul>
+<p><img src="./images/std.jpg" alt="Standard deviation" width="400" height="400"></p>
+<p>In the next chart, we will plot the data and its corresponding confidence ellipses using 2 std and 3 std. </p>
+<pre><code class="language-python"># Plot the samples using columns 1 and 2 of the matrix
+fig, ax = plt.subplots(figsize = (8, 8))
+
+colors = ['red', 'green'] # Define a color palete
+sentiments = ['negative', 'positive'] 
+index = data.index
+
+# Color base on sentiment
+for sentiment in data.sentiment.unique():
+    ix = index[data.sentiment == sentiment]
+    ax.scatter(data.iloc[ix].positive, data.iloc[ix].negative, c=colors[int(sentiment)], s=0.1, marker='*', label=sentiments[int(sentiment)])
+
+# Custom limits for this chart
+plt.xlim(-200,40)  
+plt.ylim(-200,40)
+
+plt.xlabel(&quot;Positive&quot;) # x-axis label
+plt.ylabel(&quot;Negative&quot;) # y-axis label
+
+data_pos = data[data.sentiment == 1] # Filter only the positive samples
+data_neg = data[data.sentiment == 0] # Filter only the negative samples
+
+# Print confidence ellipses of 2 std
+confidence_ellipse(data_pos.positive, data_pos.negative, ax, n_std=2, edgecolor='black', label=r'$2\sigma$' )
+confidence_ellipse(data_neg.positive, data_neg.negative, ax, n_std=2, edgecolor='orange')
+
+# Print confidence ellipses of 3 std
+confidence_ellipse(data_pos.positive, data_pos.negative, ax, n_std=3, edgecolor='black', linestyle=':', label=r'$3\sigma$')
+confidence_ellipse(data_neg.positive, data_neg.negative, ax, n_std=3, edgecolor='orange', linestyle=':')
+ax.legend(loc='lower right')
+
+plt.show()
+</code></pre>
+<p><img alt="png" src="../C1_W2_lecture_nb_01_visualizing_naive_bayes_files/C1_W2_lecture_nb_01_visualizing_naive_bayes_6_0.png" /></p>
+<p>In the next cell, we will modify the features of the samples with positive sentiment (1), in a way that the two distributions overlap. In this case, the Naïve Bayes method will produce a lower accuracy than with the original data.</p>
+<pre><code class="language-python">data2 = data.copy() # Copy the whole data frame
+
+# The following 2 lines only modify the entries in the data frame where sentiment == 1
+data2.negative[data.sentiment == 1] =  data2.negative * 1.5 + 50 # Modify the negative attribute
+data2.positive[data.sentiment == 1] =  data2.positive / 1.5 - 50 # Modify the positive attribute 
+</code></pre>
+<pre><code>/var/folders/lh/bnk9x08x35vdc9q7jby9wsv8f1fp97/T/ipykernel_24700/2253601370.py:4: FutureWarning: ChainedAssignmentError: behaviour will change in pandas 3.0!
+You are setting values through chained assignment. Currently this works in certain cases, but when using Copy-on-Write (which will become the default behaviour in pandas 3.0) this will never work to update the original DataFrame or Series, because the intermediate object on which we are setting values will behave as a copy.
+A typical example is when you are setting values in a column of a DataFrame, like:
+
+df["col"][row_indexer] = value
+
+Use `df.loc[row_indexer, "col"] = values` instead, to perform the assignment in a single step and ensure this keeps updating the original `df`.
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+
+  data2.negative[data.sentiment == 1] =  data2.negative * 1.5 + 50 # Modify the negative attribute
+/var/folders/lh/bnk9x08x35vdc9q7jby9wsv8f1fp97/T/ipykernel_24700/2253601370.py:5: FutureWarning: ChainedAssignmentError: behaviour will change in pandas 3.0!
+You are setting values through chained assignment. Currently this works in certain cases, but when using Copy-on-Write (which will become the default behaviour in pandas 3.0) this will never work to update the original DataFrame or Series, because the intermediate object on which we are setting values will behave as a copy.
+A typical example is when you are setting values in a column of a DataFrame, like:
+
+df["col"][row_indexer] = value
+
+Use `df.loc[row_indexer, "col"] = values` instead, to perform the assignment in a single step and ensure this keeps updating the original `df`.
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+
+  data2.positive[data.sentiment == 1] =  data2.positive / 1.5 - 50 # Modify the positive attribute
+</code></pre>
+<p>Now let us plot the two distributions and the confidence ellipses</p>
+<pre><code class="language-python"># Plot the samples using columns 1 and 2 of the matrix
+fig, ax = plt.subplots(figsize = (8, 8))
+
+colors = ['red', 'green'] # Define a color palete
+sentiments = ['negative', 'positive'] 
+index = data2.index
+
+# Color base on sentiment
+for sentiment in data2.sentiment.unique():
+    ix = index[data2.sentiment == sentiment]
+    ax.scatter(data2.iloc[ix].positive, data2.iloc[ix].negative, c=colors[int(sentiment)], s=0.1, marker='*', label=sentiments[int(sentiment)])
+
+#ax.scatter(data2.positive, data2.negative, c=[colors[int(k)] for k in data2.sentiment], s = 0.1, marker='*')  # Plot a dot for tweet
+# Custom limits for this chart
+plt.xlim(-200,40)  
+plt.ylim(-200,40)
+
+plt.xlabel(&quot;Positive&quot;) # x-axis label
+plt.ylabel(&quot;Negative&quot;) # y-axis label
+
+data_pos = data2[data2.sentiment == 1] # Filter only the positive samples
+data_neg = data[data2.sentiment == 0] # Filter only the negative samples
+
+# Print confidence ellipses of 2 std
+confidence_ellipse(data_pos.positive, data_pos.negative, ax, n_std=2, edgecolor='black', label=r'$2\sigma$' )
+confidence_ellipse(data_neg.positive, data_neg.negative, ax, n_std=2, edgecolor='orange')
+
+# Print confidence ellipses of 3 std
+confidence_ellipse(data_pos.positive, data_pos.negative, ax, n_std=3, edgecolor='black', linestyle=':', label=r'$3\sigma$')
+confidence_ellipse(data_neg.positive, data_neg.negative, ax, n_std=3, edgecolor='orange', linestyle=':')
+ax.legend(loc='lower right')
+
+plt.show()
+</code></pre>
+<p><img alt="png" src="../C1_W2_lecture_nb_01_visualizing_naive_bayes_files/C1_W2_lecture_nb_01_visualizing_naive_bayes_10_0.png" /></p>
+<p>To give away: Understanding the data allows us to predict if the method will perform well or not. Alternatively, it will allow us to understand why it worked well or bad.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../C1_W1_lecture_nb_03_logistic_regression_model/" class="btn btn-neutral float-left" title="Visualizing tweets and the Logistic Regression model"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../C1_W2_Testing_naive_Bayes/" class="btn btn-neutral float-right" title="Testing naïve Bayes">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/xie186/coursera_NLP_deep_learning.git" class="fa fa-code-fork" style="color: #fcfcfc"> xie186/coursera_NLP_deep_learning</a>
+        </span>
+    
+    
+      <span><a href="../C1_W1_lecture_nb_03_logistic_regression_model/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../C1_W2_Testing_naive_Bayes/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../javascripts/mathjax.js"></script>
+      <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
