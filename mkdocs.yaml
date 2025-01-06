@@ -43,4 +43,4 @@ nav:
     - Visualizing tweets and the Logistic Regression model: C1_W1_lecture_nb_03_logistic_regression_model.md
   - Sentiment Analysis with naïve Bayes
     - Visualizing likelihoods and confidence ellipses: C1_W2_lecture_nb_01_visualizing_naive_bayes.md 
-    - Testing naïve Bayes: C1_W2_Testing_naive_Bayes.md
+    - Testing naive Bayes: C1_W2_Testing_naive_Bayes.md
